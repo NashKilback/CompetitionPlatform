@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Scoring Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ethers@6.4.0/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-active { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-ended { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status-upcoming { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-slate-900/50 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold gradient-text">Competition Scoring Platform</h1>
+                        <p class="text-gray-400 text-sm">Private Judge Scoring with FHE Technology</p>
+                    </div>
+                </div>
+                <button id="connectWallet" class="btn-primary text-white px-6 py-3 rounded-lg font-medium">
+                    Connect Wallet
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Wallet Status -->
+        <div id="walletStatus" class="hidden mb-8 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-green-400 font-medium">Connected:</span>
+                <span id="walletAddress" class="text-white"></span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="mb-8">
+            <nav class="flex space-x-1 bg-slate-800/50 rounded-lg p-1">
+                <button class="tab-btn active px-6 py-3 rounded-md font-medium transition-all" data-tab="competitions">
+                    Competitions
+                </button>
+                <button class="tab-btn px-6 py-3 rounded-md font-medium transition-all" data-tab="create">
+                    Create Competition
+                </button>
+                <button class="tab-btn px-6 py-3 rounded-md font-medium transition-all" data-tab="judge">
+                    Judge Panel
+                </button>
+            </nav>
+        </div>
+
+        <!-- Competitions Tab -->
+        <div id="competitionsTab" class="tab-content">
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div class="card rounded-xl p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-white">Web3 Innovation Contest</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Build the next generation of decentralized applications with privacy-first features.</p>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Participants:</span>
+                            <span class="text-white">15/50</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Prize Pool:</span>
+                            <span class="text-white">5 ETH</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Ends:</span>
+                            <span class="text-white">2024-12-31</span>
+                        </div>
+                    </div>
+                    <button class="w-full btn-primary text-white py-2 rounded-lg font-medium">
+                        Join Competition
+                    </button>
+                </div>
+
+                <div class="card rounded-xl p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-white">DeFi Protocol Challenge</h3>
+                        <span class="status-badge status-upcoming">Upcoming</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Design innovative DeFi protocols with enhanced security and user privacy.</p>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Participants:</span>
+                            <span class="text-white">0/30</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Prize Pool:</span>
+                            <span class="text-white">10 ETH</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Starts:</span>
+                            <span class="text-white">2024-11-01</span>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-600 text-white py-2 rounded-lg font-medium opacity-50 cursor-not-allowed">
+                        Registration Opens Soon
+                    </button>
+                </div>
+
+                <div class="card rounded-xl p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-white">Smart Contract Audit</h3>
+                        <span class="status-badge status-ended">Ended</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Find vulnerabilities in smart contracts and help improve blockchain security.</p>
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Participants:</span>
+                            <span class="text-white">25/25</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Winner:</span>
+                            <span class="text-white">0x742d...a4b8</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-400">Prize Won:</span>
+                            <span class="text-white">3 ETH</span>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-600 text-white py-2 rounded-lg font-medium">
+                        View Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Competition Tab -->
+        <div id="createTab" class="tab-content hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="card rounded-xl p-8">
+                    <h2 class="text-2xl font-bold mb-6 gradient-text">Create New Competition</h2>
+                    <form id="createCompetitionForm" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Competition Name</label>
+                            <input type="text" id="compName" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter competition name" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                            <textarea id="compDescription" rows="4" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe your competition..." required></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                                <input type="datetime-local" id="startDate" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                                <input type="datetime-local" id="endDate" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Max Participants</label>
+                                <input type="number" id="maxParticipants" min="1" max="1000" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="50" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Prize Pool (ETH)</label>
+                                <input type="number" id="prizePool" step="0.001" min="0" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1.0">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full btn-primary text-white py-4 rounded-lg font-medium text-lg">
+                            Create Competition
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Judge Panel Tab -->
+        <div id="judgeTab" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="card rounded-xl p-8">
+                    <h2 class="text-2xl font-bold mb-6 gradient-text">Judge Panel</h2>
+                    
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <!-- Judge Authorization -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-white">Authorize Judge</h3>
+                            <form id="authorizeJudgeForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Competition ID</label>
+                                    <input type="number" id="judgeCompId" min="1" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Judge Address</label>
+                                    <input type="text" id="judgeAddress" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0x..." required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Judge Name</label>
+                                    <input type="text" id="judgeName" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Judge Name" required>
+                                </div>
+                                <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-medium">
+                                    Authorize Judge
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Submit Score -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-white">Submit Score</h3>
+                            <form id="submitScoreForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Competition ID</label>
+                                    <input type="number" id="scoreCompId" min="1" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Participant ID</label>
+                                    <input type="number" id="participantId" min="1" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Score (0-100)</label>
+                                    <input type="number" id="score" min="0" max="100" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="85" required>
+                                </div>
+                                <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-medium">
+                                    Submit Private Score
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-slate-800 rounded-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p class="text-white">Processing transaction...</p>
+        </div>
+    </div>
+
+    <script>
+        // Contract configuration
+        const CONTRACT_ADDRESS = "0x3f25F27D0F0816F32C5f6d5EC5b83640c2A0B1ef"; // Replace with actual deployed contract
+        const CONTRACT_ABI = [
+            "function createCompetition(string name, string description, uint256 startTime, uint256 endTime, uint256 maxParticipants) external payable returns (uint256)",
+            "function registerParticipant(uint256 competitionId, string name, string submission) external",
+            "function authorizeJudge(uint256 competitionId, address judgeAddress, string judgeName) external",
+            "function submitScore(uint256 competitionId, uint256 participantId, uint256 score) external",
+            "function getCompetition(uint256 competitionId) external view returns (tuple(string name, string description, address organizer, uint256 startTime, uint256 endTime, uint256 maxParticipants, uint256 participantCount, bool active, bool finalized, uint256 totalPrize))",
+            "function getTotalCompetitions() external view returns (uint256)"
+        ];
+
+        let provider, signer, contract, userAccount;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabSwitching();
+            setupEventListeners();
+        });
+
+        // Tab switching
+        function initializeTabSwitching() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.getAttribute('data-tab');
+                    
+                    // Update button states
+                    tabBtns.forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+                    btn.classList.add('active', 'bg-blue-600', 'text-white');
+                    
+                    // Update content visibility
+                    tabContents.forEach(content => {
+                        if (content.id === targetTab + 'Tab') {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Set initial active state
+            document.querySelector('.tab-btn[data-tab="competitions"]').classList.add('bg-blue-600', 'text-white');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            document.getElementById('createCompetitionForm').addEventListener('submit', createCompetition);
+            document.getElementById('authorizeJudgeForm').addEventListener('submit', authorizeJudge);
+            document.getElementById('submitScoreForm').addEventListener('submit', submitScore);
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            try {
+                if (!window.ethereum) {
+                    alert('Please install MetaMask to use this application!');
+                    return;
+                }
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = await provider.getSigner();
+                userAccount = await signer.getAddress();
+                
+                // Initialize contract
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+                // Update UI
+                document.getElementById('walletAddress').textContent = 
+                    userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+                document.getElementById('walletStatus').classList.remove('hidden');
+                document.getElementById('connectWallet').textContent = 'Connected';
+                document.getElementById('connectWallet').disabled = true;
+
+                console.log('Connected to wallet:', userAccount);
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                alert('Error connecting wallet: ' + error.message);
+            }
+        }
+
+        // Create competition
+        async function createCompetition(e) {
+            e.preventDefault();
+            
+            if (!contract) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                const name = document.getElementById('compName').value;
+                const description = document.getElementById('compDescription').value;
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                const maxParticipants = parseInt(document.getElementById('maxParticipants').value);
+                const prizePool = document.getElementById('prizePool').value;
+
+                const startTime = Math.floor(startDate.getTime() / 1000);
+                const endTime = Math.floor(endDate.getTime() / 1000);
+                const weiAmount = prizePool ? ethers.parseEther(prizePool) : 0;
+
+                const tx = await contract.createCompetition(
+                    name,
+                    description,
+                    startTime,
+                    endTime,
+                    maxParticipants,
+                    { value: weiAmount }
+                );
+
+                await tx.wait();
+                alert('Competition created successfully!');
+                document.getElementById('createCompetitionForm').reset();
+
+            } catch (error) {
+                console.error('Error creating competition:', error);
+                alert('Error creating competition: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Authorize judge
+        async function authorizeJudge(e) {
+            e.preventDefault();
+            
+            if (!contract) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                const competitionId = parseInt(document.getElementById('judgeCompId').value);
+                const judgeAddress = document.getElementById('judgeAddress').value;
+                const judgeName = document.getElementById('judgeName').value;
+
+                const tx = await contract.authorizeJudge(competitionId, judgeAddress, judgeName);
+                await tx.wait();
+                
+                alert('Judge authorized successfully!');
+                document.getElementById('authorizeJudgeForm').reset();
+
+            } catch (error) {
+                console.error('Error authorizing judge:', error);
+                alert('Error authorizing judge: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Submit score
+        async function submitScore(e) {
+            e.preventDefault();
+            
+            if (!contract) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                const competitionId = parseInt(document.getElementById('scoreCompId').value);
+                const participantId = parseInt(document.getElementById('participantId').value);
+                const score = parseInt(document.getElementById('score').value);
+
+                const tx = await contract.submitScore(competitionId, participantId, score);
+                await tx.wait();
+                
+                alert('Score submitted successfully! (In production, this would be encrypted using FHE)');
+                document.getElementById('submitScoreForm').reset();
+
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                alert('Error submitting score: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Loading modal
+        function showLoading(show) {
+            const modal = document.getElementById('loadingModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
